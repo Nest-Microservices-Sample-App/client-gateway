@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, NotImplementedException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Inject, NotImplementedException, ParseIntPipe, Query, ParseUUIDPipe } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ORDERS_SERVICE } from 'src/config';
 import { ClientProxy } from '@nestjs/microservices';
+import { PaginationDto } from 'src/common';
+import { UpdateOrderDto } from './dto';
 
 @Controller('orders')
 export class OrdersController {
@@ -15,17 +17,17 @@ export class OrdersController {
   }
 
   @Get()
-  findAll() {
-    return this.ordersMicroService.send({ cmd: 'findAllOrders' }, {});
+  findAll(@Query() paginationDto: PaginationDto) {
+    return this.ordersMicroService.send({ cmd: 'findAllOrders' }, paginationDto);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.ordersMicroService.send({ cmd: 'findOneOrder' }, id);
   }
 
-  @Patch(':id')
-  updateOrderStatus(@Param('id', ParseIntPipe) id: number) {
-    throw new NotImplementedException();
+  @Patch()
+  updateOrderStatus(@Body() updateOrderDto: UpdateOrderDto) {
+    return this.ordersMicroService.send({ cmd: 'changeOrderStatus' }, updateOrderDto);
   }
 }
