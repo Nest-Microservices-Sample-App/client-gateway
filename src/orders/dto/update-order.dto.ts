@@ -3,7 +3,7 @@ import { OrderStatus, OrderStatusList } from "../enums";
 
 export class UpdateOrderDto {
 
-    @IsUUID('4')
+    @IsUUID()
     @IsString()
     id: string;
 
