@@ -4,7 +4,7 @@ import { NATS_SERVICE, ORDERS_SERVICE } from 'src/config';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { PaginationDto } from 'src/common';
 import { UpdateOrderDto } from './dto';
-import { catchError } from 'rxjs';
+import { catchError, firstValueFrom } from 'rxjs';
 import { OrderPaginationDto } from './dto/order-pagination.dto';
 
 @Controller('orders')
@@ -19,22 +19,43 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(@Query() orderPaginationDto: OrderPaginationDto) {
-    return this.ordersMicroService.send('order.find_all', orderPaginationDto);
+  async findAll(@Query() orderPaginationDto: OrderPaginationDto) {
+    try {
+
+      const orders = await firstValueFrom(
+        this.ordersMicroService.send('order.find_all', orderPaginationDto)
+      );
+
+      return orders;
+    } catch (error) {
+      throw new RpcException(error);
+    }
+
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.ordersMicroService.send('order.find_by_id', id)
-      .pipe(catchError(err => {
-        throw new RpcException(err);
-      }));
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    try {
+      const order = await firstValueFrom(
+        this.ordersMicroService.send('order.find_by_id', id)
+      );
+
+      return order;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 
   @Patch()
-  updateOrderStatus(@Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersMicroService.send('order.change_status', updateOrderDto).pipe(catchError(err => {
-      throw new RpcException(err);
-    }));
+  async updateOrderStatus(@Body() updateOrderDto: UpdateOrderDto) {
+    try {
+      const order = await firstValueFrom(
+        this.ordersMicroService.send('order.change_status', updateOrderDto)
+      )
+
+      return order;
+    } catch (error) {
+      throw new RpcException(error);
+    }
   }
 }
